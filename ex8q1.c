@@ -1,3 +1,4 @@
+
 #include <stdio.h>      // 标准输入输出库，用于printf、fgets等函数
 #include <stdlib.h>     // 标准库，用于EXIT_FAILURE等常量
 #include <stdbool.h>    // 布尔类型库，提供bool、true、false
@@ -5,11 +6,14 @@
 
 #define MAX_LEN 257     // 定义字符串最大长度为257（包括结束符'\0'）
 
-// 函数声明：判断正则表达式regex是否匹配文本text
+
+// 函数声明：判断正则表达式reg ex是否匹配文本text
 bool matches(const char* regex, const char* text);
+
 
 // 函数声明：获取正则表达式中最后一个子表达式的起始位置
 int get_last_sub_expr_start(const char* regex, int len);
+
 
 // 函数功能：移除字符串末尾的换行符'\n'
 // 参数：str - 需要处理的字符串
@@ -22,12 +26,14 @@ void remove_newline(char* str) {
     }
 }
 
+
 // 函数功能：找到正则表达式中最后一个子表达式的起始位置
 // 这个函数用于处理连接运算（concatenation）时分割正则表达式
 // 参数：regex - 正则表达式字符串
 //       len - 正则表达式的长度
 // 返回值：最后一个子表达式的起始索引
 int get_last_sub_expr_start(const char* regex, int len) {
+    
     // 情况1：如果最后一个字符是右括号')'
     // 例如：regex = "abc(def)"，需要找到对应的左括号'('
     if (regex[len - 1] == ')') {
@@ -41,6 +47,8 @@ int get_last_sub_expr_start(const char* regex, int len) {
             }
         }
     } 
+   
+
     // 情况2：如果最后一个字符是星号'*'（表示重复运算）
     // 例如：regex = "abc*" 或 "ab(cd)*"
     else if (regex[len - 1] == '*') {
@@ -60,6 +68,7 @@ int get_last_sub_expr_start(const char* regex, int len) {
             return len - 2;  // 返回星号前面那个字符的位置
         }
     }
+    
     // 情况3：最后一个字符是普通字符（字母、数字等）
     else {
         return len - 1;  // 直接返回最后一个字符的位置
@@ -68,10 +77,12 @@ int get_last_sub_expr_start(const char* regex, int len) {
     return 0;  // 默认返回0（理论上不应该到达这里）
 }
 
+
 // 核心函数：递归判断正则表达式regex是否匹配文本text
 // 参数：regex - 正则表达式字符串
 //       text - 待匹配的文本字符串
 // 返回值：如果匹配返回true，否则返回false
+
 bool matches(const char* regex, const char* text) {
     
     int regex_len = strlen(regex);  // 获取正则表达式的长度
@@ -82,7 +93,8 @@ bool matches(const char* regex, const char* text) {
         return (text_len == 0);  // 只有当文本也为空时才匹配
     }
     
-    // ========== 第一步：处理联合运算符'|'（优先级最低） ==========
+
+// ========== 第一步：处理联合运算符'|'（优先级最低） ==========
     // 例如：regex = "a|b"，需要检查text是否匹配'a'或'b'
     int level = 0;  // 用于跟踪括号的嵌套层级
     // 从右往左遍历正则表达式，寻找不在括号内的'|'
@@ -107,57 +119,28 @@ bool matches(const char* regex, const char* text) {
             return matches(S, text) || matches(T, text);
         }
     }
-    
-    // ========== 第二步：处理连接运算（优先级中等） ==========
-    // 例如：regex = "abc"，需要将其分解为"ab"和"c"
-    // 找到最后一个子表达式的起始位置
-    int split_point = get_last_sub_expr_start(regex, regex_len);
-    
-    // 如果可以分割（split_point > 0说明至少有两个子表达式）
-    if (split_point > 0) {
-        char S[MAX_LEN];  // 存储前面的部分
-        char T[MAX_LEN];  // 存储后面的部分
-        
-        // 分割正则表达式为S和T
-        strncpy(S, regex, split_point);
-        S[split_point] = '\0';
-        
-        strcpy(T, regex + split_point);
-        
-        // 尝试所有可能的文本分割方式
-        // 例如：text="abc"可以分割为：""+"abc", "a"+"bc", "ab"+"c", "abc"+""
-        for (int i = 0; i <= text_len; i++) {
-            char x[MAX_LEN];  // text的前i个字符
-            char y[MAX_LEN];  // text的剩余字符
-            
-            strncpy(x, text, i);
-            x[i] = '\0';
-            
-            strcpy(y, text + i);
-            
-            // 如果S匹配x且T匹配y，则整个表达式匹配
-            if (matches(S, x) && matches(T, y)) {
-                return true;
-            }
-        }
-        return false;  // 所有分割方式都不匹配
-    }
 
-    // ========== 第三步：处理星号运算'*'（优先级最高） ==========
+
+// ========== 第三步：处理星号运算'*'（优先级最高） ==========
     // 例如：regex = "a*"，匹配0个或多个'a'
-    if (regex[regex_len - 1] == '*') {
+        //
+
+        if (regex[regex_len - 1] == '*') {
         char S[MAX_LEN];  // 存储星号前面的表达式
         strncpy(S, regex, regex_len - 1);
         S[regex_len - 1] = '\0';
         
+  
         // 情况1：空字符串总是能被"任何东西*"匹配
         if (text_len == 0) {
             return true;
         }
         
+
         // 情况2：尝试将text分割为x和y
         // 让S匹配x，regex（包含星号）匹配y
         // 这样可以实现"重复0次、1次、2次...n次"的效果
+        //
         for (int i = 1; i <= text_len; i++) {
             char x[MAX_LEN];  // text的前i个字符
             char y[MAX_LEN];  // text的剩余字符
@@ -175,58 +158,36 @@ bool matches(const char* regex, const char* text) {
         
         return false;  // 所有分割方式都不匹配
     }
-    
-    // ========== 第四步：处理括号'()'（用于改变优先级） ==========
-    // 例如：regex = "(abc)"，等价于"abc"
-    if (regex[0] == '(' && regex[regex_len - 1] == ')') {
-        char S[MAX_LEN];  // 存储括号内的表达式
-        strncpy(S, regex + 1, regex_len - 2);  // 去掉首尾的括号
-        S[regex_len - 2] = '\0';
-        
-        // 递归检查括号内的表达式是否匹配text
-        return matches(S, text);
-    }
-    
-    // ========== 第五步：基础情况 - 单个字符匹配 ==========
-    if (regex_len == 1) {
-        // 特殊情况：'_'表示空字符串
-        if (regex[0] == '_') {
-            return (text_len == 0);  // 只有当text为空时才匹配
-        }
-        // 普通情况：单个字符必须完全相同
-        else {
-            return (text_len == 1 && regex[0] == text[0]);
-        }
-    }
-    
-    // 如果以上所有情况都不满足，返回false
-    return false;
-}
+
 
 // 主函数：程序的入口点
 int main() {
     char regex_line[MAX_LEN];  // 存储从输入读取的正则表达式
     char text_line[MAX_LEN];   // 存储从输入读取的文本行
     
-    // 读取第一行：正则表达式
+
+    // 读取第一行：正则表达式file get string(从文件获取字符串)遇到换行符停止，失败返回null
     if (fgets(regex_line, MAX_LEN, stdin) == NULL) {
         return EXIT_FAILURE;  // 读取失败，返回错误代码
     }
     remove_newline(regex_line);  // 移除末尾的换行符
     
+ 
     // 循环读取剩余的每一行文本
     while (fgets(text_line, MAX_LEN, stdin) != NULL) {
         remove_newline(text_line);  // 移除换行符
         
         char* text_to_match;  // 指向实际要匹配的文本
         
-        // 特殊处理：如果输入是"_"，表示空字符串
+ 
+        // 特殊处理：如果输入是"_"，表示空字符串string compare (字符串比较)用来比较两个字符串是否相同
         if (strcmp(text_line, "_") == 0) {
             text_to_match = "";  // 将text_to_match指向空字符串
         } else {
             text_to_match = text_line;  // 否则就是普通文本
         }
         
+ 
         // 调用matches函数检查是否匹配
         if (matches(regex_line, text_to_match)) {
             printf("1\n");  // 匹配成功，输出1
